@@ -22,6 +22,7 @@
     <ProjectName>libwdi (static)</ProjectName>
     <ProjectGuid>{9AA0E745-1A0A-4700-8ECB-6A6DE9DBF8B9}</ProjectGuid>
     <RootNamespace>libwdi</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

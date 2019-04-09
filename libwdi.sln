@@ -28,6 +28,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "detect_64build", "libwdi\.m
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "arty-winusb-installer", "examples\.msvc\arty-winusb-installer.vcxproj", "{62CBD014-576F-4A0E-A70E-111D09E8685F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "olimex-winusb-installer", "examples\.msvc\olimex-winusb-installer.vcxproj", "{3519C169-6BC9-4FCF-9988-16780CA7951B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sifive-winusb-installer", "examples\.msvc\sifive-winusb-installer.vcxproj", "{2727950E-1F59-4900-87AE-7A3F84C84FB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -118,6 +122,22 @@ Global
 		{62CBD014-576F-4A0E-A70E-111D09E8685F}.Release|Win32.Build.0 = Release|Win32
 		{62CBD014-576F-4A0E-A70E-111D09E8685F}.Release|x64.ActiveCfg = Release|x64
 		{62CBD014-576F-4A0E-A70E-111D09E8685F}.Release|x64.Build.0 = Release|x64
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Debug|Win32.Build.0 = Debug|Win32
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Debug|x64.ActiveCfg = Debug|x64
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Debug|x64.Build.0 = Debug|x64
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Release|Win32.ActiveCfg = Release|Win32
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Release|Win32.Build.0 = Release|Win32
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Release|x64.ActiveCfg = Release|x64
+		{3519C169-6BC9-4FCF-9988-16780CA7951B}.Release|x64.Build.0 = Release|x64
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Debug|Win32.Build.0 = Debug|Win32
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Debug|x64.ActiveCfg = Debug|x64
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Debug|x64.Build.0 = Debug|x64
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|Win32.ActiveCfg = Release|Win32
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|Win32.Build.0 = Release|Win32
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|x64.ActiveCfg = Release|x64
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,6 +149,8 @@ Global
 		{F7F7842F-2912-454E-ADF5-0B22987946E2} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
 		{AE83E1B4-CE06-47EE-B7A3-C3A1D7C2D71E} = {B1F3B94A-4EC4-406E-9CBF-056E1EA03DE0}
 		{62CBD014-576F-4A0E-A70E-111D09E8685F} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
+		{3519C169-6BC9-4FCF-9988-16780CA7951B} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
+		{2727950E-1F59-4900-87AE-7A3F84C84FB4} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1967396E-B0D6-402A-9266-CE2A3FAD32A4}

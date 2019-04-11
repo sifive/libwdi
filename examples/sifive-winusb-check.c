@@ -82,57 +82,22 @@ HWND GetConsoleHwnd(void)
 	return hwndFound;
 }
 
-int __cdecl main(int argc, char** argv)
-{
+static int opt_silent = 1, log_level = WDI_LOG_LEVEL_WARNING;
+
+int checkDrivers() {
 	static struct wdi_device_info *ldev;
 	static struct wdi_device_info *dev = NULL;
-
-	static struct wdi_options_create_list ocl = { 1, 0, 0 };
-	static struct wdi_options_prepare_driver opd = { 0 };
-	static struct wdi_options_install_driver oid = { 0 };
-	static struct wdi_options_install_cert oic = { 0 };
-	static int opt_silent = 1, opt_extract = 0, log_level = WDI_LOG_LEVEL_WARNING;
 	static BOOL matching_device_found;
-	int c, r;
-
-	static struct option long_options[] = {
-		{ "help", no_argument, 0, 'h'},
-		{ "verbose" , no_argument, 0, 'v' },
-		{0, 0, 0, 0}
-	};
-
+	static struct wdi_options_create_list ocl = { 1, 0, 0 };
 	ocl.list_all = TRUE;
 	ocl.list_hubs = TRUE;
 	ocl.trim_whitespaces = TRUE;
-	opd.driver_type = WDI_WINUSB;
-
-	while (1) {
-		c = getopt_long(argc, argv, "hv", long_options, NULL);
-		if (c == -1) {
-			break;
-		}
-		switch (c) {
-		case 'v':
-			opt_silent = 0;
-			break;
-		case -1:
-			exit(0);
-		case 'h':
-		default:
-			usage();
-			exit(0);
-		}
-	}
-
-
-	wdi_set_log_level(log_level);
 
 	int return_code = WDI_SUCCESS;
 
 	matching_device_found = FALSE;
 	char *tag;
 	if (wdi_create_list(&ldev, &ocl) == WDI_SUCCESS) {
-		r = WDI_SUCCESS;
 		for (; (ldev != NULL); ldev = ldev->next) {
 			tag = "";
 			int print = FALSE;
@@ -166,5 +131,41 @@ int __cdecl main(int argc, char** argv)
 	}
 
 	oprintf("Return code: %d\n", return_code);
-	return return_code;
+	exit(return_code);
+}
+
+
+int __cdecl main(int argc, char** argv)
+{
+	int c;
+
+	static struct option long_options[] = {
+		{ "help", no_argument, 0, 'h'},
+		{ "verbose" , no_argument, 0, 'v' },
+		{0, 0, 0, 0}
+	};
+
+	while (1) {
+		c = getopt_long(argc, argv, "hv", long_options, NULL);
+		if (c == -1) {
+			break;
+		}
+		switch (c) {
+		case 'v':
+			opt_silent = 0;
+			break;
+		case -1:
+			exit(0);
+		case 'h':
+		default:
+			usage();
+			exit(0);
+		}
+	}
+
+	wdi_set_log_level(log_level);
+
+	checkDrivers();
+
+
 }

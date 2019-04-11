@@ -10,13 +10,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\sifive-winusb-check.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Manifest Include="..\common_controls.manifest">
       <Filter>Resource Files</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sifive-winusb-check.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

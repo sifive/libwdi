@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>sifive-winusb-installer</ProjectName>
+    <ProjectName>sifive-winusb-utility</ProjectName>
     <ProjectGuid>{2727950E-1F59-4900-87AE-7A3F84C84FB4}</ProjectGuid>
     <RootNamespace>simple</RootNamespace>
     <Keyword>Win32Proj</Keyword>
@@ -171,7 +171,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\sifive-winusb-installer.c" />
+    <ClCompile Include="..\sifive-winusb-utility.c" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\common_controls.manifest" />

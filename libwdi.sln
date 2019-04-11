@@ -3,6 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}"
+	ProjectSection(SolutionItems) = preProject
+		usb_devices.h = usb_devices.h
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "external utilities", "external utilities", "{B1F3B94A-4EC4-406E-9CBF-056E1EA03DE0}"
 EndProject
@@ -31,6 +34,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "olimex-winusb-installer", "examples\.msvc\olimex-winusb-installer.vcxproj", "{3519C169-6BC9-4FCF-9988-16780CA7951B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sifive-winusb-installer", "examples\.msvc\sifive-winusb-installer.vcxproj", "{2727950E-1F59-4900-87AE-7A3F84C84FB4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sifive-winusb-check", "examples\.msvc\sifive-winusb-check.vcxproj", "{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -138,6 +143,14 @@ Global
 		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|Win32.Build.0 = Release|Win32
 		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|x64.ActiveCfg = Release|x64
 		{2727950E-1F59-4900-87AE-7A3F84C84FB4}.Release|x64.Build.0 = Release|x64
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Debug|Win32.Build.0 = Debug|Win32
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Debug|x64.ActiveCfg = Debug|x64
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Debug|x64.Build.0 = Debug|x64
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Release|Win32.ActiveCfg = Release|Win32
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Release|Win32.Build.0 = Release|Win32
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Release|x64.ActiveCfg = Release|x64
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,6 +164,7 @@ Global
 		{62CBD014-576F-4A0E-A70E-111D09E8685F} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
 		{3519C169-6BC9-4FCF-9988-16780CA7951B} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
 		{2727950E-1F59-4900-87AE-7A3F84C84FB4} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
+		{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6} = {CE152D17-B7D5-4ECA-9C6B-BFA86ACBFF75}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1967396E-B0D6-402A-9266-CE2A3FAD32A4}

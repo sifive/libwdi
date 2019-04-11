@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>olimex-winusb-installer</ProjectName>
-    <ProjectGuid>{3519C169-6BC9-4FCF-9988-16780CA7951B}</ProjectGuid>
+    <ProjectName>sifive-winusb-check</ProjectName>
+    <ProjectGuid>{E4E5DDAA-1AC3-453A-9AD2-CC0A8A4E5DF6}</ProjectGuid>
     <RootNamespace>simple</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
@@ -105,7 +105,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\libwdi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\libwdi;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -119,7 +119,8 @@
       <ProgramDatabaseFile>$(TargetDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <EnableUAC>true</EnableUAC>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -169,7 +170,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\olimex-winusb-installer.c" />
+    <ClCompile Include="..\sifive-winusb-check.c" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\common_controls.manifest" />

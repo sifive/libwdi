@@ -51,3 +51,7 @@ missing
 sources
 stamp-h1
 .vs
+/examples/.msvc/olimex_winusb_driver
+/examples/.msvc/sifive_art_digilent_driver
+/examples/.msvc/sifive_olimex_winusb_driver
+/.vscode/ipch

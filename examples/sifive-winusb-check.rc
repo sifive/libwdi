@@ -24,15 +24,15 @@ BEGIN
         BLOCK "000904b0"
         BEGIN
             VALUE "CompanyName", "SiFive"
-            VALUE "FileDescription", "SiFive-WinUSB-Installer"
+            VALUE "FileDescription", "SiFive-WinUSB-Check"
             VALUE "FileVersion", "1.3.725"
-            VALUE "InternalName", "SiFive-WinUSB-Installer"
+            VALUE "InternalName", "SiFive-WinUSB-Check"
             VALUE "LegalCopyright", "� 2010-2019 SiFive & Pete Batard (LGPL v3)"
             VALUE "LegalTrademarks", "http://www.gnu.org/copyleft/lesser.html"
-            VALUE "OriginalFilename", "sifive-winusb-installer.exe"
-            VALUE "ProductName", "SiFive-WinUSB-Installer"
+            VALUE "OriginalFilename", "sifive-winusb-check.exe"
+            VALUE "ProductName", "SiFive-WinUSB-Checker"
             VALUE "ProductVersion", "1.3.725"
-            VALUE "Comments", "http://sifive.com"
+            VALUE "Comments", "http://www.sifive.com"
         END
     END
     BLOCK "VarFileInfo"

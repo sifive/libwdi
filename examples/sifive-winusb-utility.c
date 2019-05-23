@@ -45,28 +45,48 @@
 #define ARTY_PID         0x6010
 #define ARTY_INF_NAME    "sifive_arty_digilent.inf"
 #define ARTY_DEFAULT_DIR "sifive_art_digilent_driver"
+#define ARTY_INSTALL_MSG "INSTALL_DIGILENT(0x2)"
+#define ARTY_EXIST_MSG   "DIGILENT_EXISTS(0x2)"
 
 #define OLIM_DESC        "SiFive Olimex OpenOCD JTAG ARM-USB-TINY-H (Interface 0)"
 #define OLIM_VID         0x15ba
 #define OLIM_PID         0x002a
 #define OLIM_INF_NAME    "sifive_olimex_winusb.inf"
 #define OLIM_DEFAULT_DIR "sifive_olimex_winusb_driver"
+#define OLIM_INSTALL_MSG "INSTALL_OLIMEX(0x1)"
+#define OLIM_EXIST_MSG   "OLIMEX_EXISTS(0x1)"
 
 static struct wdi_device_info arty_dev = { NULL, ARTY_VID, ARTY_PID, TRUE, 0, ARTY_DESC, NULL, NULL, NULL };
 static struct wdi_device_info olim_dev = { NULL, OLIM_VID, OLIM_PID, TRUE, 0, OLIM_DESC, NULL, NULL, NULL };
 
-static int opt_silent = 1;
+#define FLAG_OLIMEX 0x1
+#define FLAG_DIGILENT 0x2
 
+#define WINUSB_TAG "=> WinUSB"
+
+#define CHECK_DRIVER 1
+#define CHECK_EXIST 2
+
+static int opt_silent = 1, opt_listall = 0;
+static int checkType = CHECK_EXIST;
 
 void usage(void)
 {
 	printf("SiFive WinUSB Utility\n");
-	printf("  -c, --check                check devices to see what needs to be updated\n");
-	printf("  -o, --olimex               install olimex winusb driver\n");
-	printf("  -d, --digelent             install digilent winusb driver\n");
-	printf("  -v, --verbose              be verbose about it (must be first param)\n");
-	printf("  -h, --help                 display usage\n");
-	printf("\nAt least one of --olimex or --digilent is required.\n\n");
+	printf("    -h, --help                 display usage\n\n");
+	printf("  These must be specified first, if used:\n");
+	printf("    -l, --list-all             list all connected devices, implies -v, use with -c, -e\n");
+	printf("    -v, --verbose              be verbose about it, -c and -e will not be silent\n\n");
+	printf("  These options query information, but do not install drivers:\n");
+	printf("    -c, --check-driver         check devices to see what needs to be updated\n");
+	printf("    -e, --check-connected      check the connection status for each device\n");
+	printf("    (without -v or -l this process is silent and the return code can be used to determine\n");
+	printf("    what actions needs to be taken)\n\n");
+	printf("  These options will install drivers (but required an elevated shell):\n");
+	printf("    -o, --olimex               install olimex winusb driver\n");
+	printf("    -d, --digelent             install digilent winusb driver\n\n");
+
+	printf("\nAt least one of --olimex or --digilent is required unless using -c or -e.\n\n");
 }
 
 int isMatch(struct wdi_device_info *ldev, struct wdi_device_info *dev) {
@@ -79,7 +99,16 @@ int isMatch(struct wdi_device_info *ldev, struct wdi_device_info *dev) {
 	return FALSE;
 }
 
-int isDriverInstallNeeded(struct wdi_device_info *ldev) {
+BOOL isDeviceFlaggedFor(int checkType, struct wdi_device_info *ldev) {
+	if (checkType == CHECK_EXIST) {
+		/*
+		  IF we got this far, then the device certainly exists
+		 */
+		return TRUE;
+	}
+	/*
+	  For the CHECK_DRIVER case we need to examine the driver details.
+	 */
 	return (ldev->driver == NULL || strcmp(ldev->driver, "WinUSB"));
 }
 
@@ -115,12 +144,8 @@ HWND GetConsoleHwnd(void)
 	return hwndFound;
 }
 
-#define UPDATE_OLIMEX 0x1
-#define UPDATE_DIGILENT 0x2
 
-#define WINUSB_TAG "=> WinUSB"
-
-int checkDrivers() {
+int checkDrivers(int checkType) {
 	static struct wdi_device_info *ldev;
 	static struct wdi_device_info *dev = NULL;
 	static BOOL matching_device_found;
@@ -137,39 +162,65 @@ int checkDrivers() {
 		for (; (ldev != NULL); ldev = ldev->next) {
 			tag = "";
 			int print = FALSE;
+			if (opt_listall == 1) {
+				print = TRUE;
+			}
+
 			if (isMatch(ldev, &olim_dev)) {
 				matching_device_found = TRUE;
 				print = TRUE;
-				if (isDriverInstallNeeded(ldev)) {
+				if (isDeviceFlaggedFor(checkType, ldev)) {
 					tag = WINUSB_TAG;
-					return_code |= UPDATE_OLIMEX;
+					return_code |= FLAG_OLIMEX;
 				}
 			}
 			else if (isMatch(ldev, &arty_dev)) {
 				matching_device_found = TRUE;
 				print = TRUE;
-				if (isDriverInstallNeeded(ldev)) {
+				if (isDeviceFlaggedFor(checkType, ldev)) {
 					tag = WINUSB_TAG;
-					return_code |= UPDATE_DIGILENT;
+					return_code |= FLAG_DIGILENT;
 				}
 			}
+
 			if (print) {
-				oprintf("Device: %04x:%04x:%x %12s %-14s %d %s\n", ldev->vid,
-					ldev->pid, ldev->mi, ldev->driver, tag, ldev->is_composite,
+				oprintf("Device: %04x:%04x:%x:%x %12s %9s %s\n", ldev->vid,
+					ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
 					ldev->desc);
 			}
 		}
 	}
 
-	if (!matching_device_found) {
+	//if (!matching_device_found) {
 		// No device connected
-		return_code = -1;
+	//	return_code = -1;
+	//}
+
+	char* o_leader = OLIM_EXIST_MSG;
+	char* d_leader = ARTY_EXIST_MSG;
+	if (CHECK_DRIVER == checkType) {
+		o_leader = OLIM_INSTALL_MSG;
+		d_leader = ARTY_INSTALL_MSG;
 	}
 
-	oprintf("\nFor reference:\n");
-	oprintf("Installation of Olimex driver is required if bit 0 of return code is set (%s).\n", (return_code&0x1)?"it is":"it is not");
-	oprintf("Installation of Digilent driver is required if bit 1 of return code is set (%s).\n", (return_code & 0x2) ? "it is" : "it is not");
-	oprintf("Return code: %d\n", return_code);
+	oprintf("Return code: %d", return_code);
+	if (return_code == 0) {
+		oprintf("\n");
+	}
+	else {
+		oprintf(" (");
+		if (return_code & 0x1) {
+			oprintf(o_leader);
+			if (return_code & 0x2) {
+				oprintf(" | ");
+			}
+		}
+		if (return_code & 0x2) {
+			oprintf(d_leader);
+		}
+		oprintf(")\n");
+	}
+
 	exit(return_code);
 }
 
@@ -194,7 +245,8 @@ int __cdecl main(int argc, char** argv)
 		{ "olimex", no_argument, 0, 'o' },
 		{ "digilent" , no_argument, 0, 'd' },
 		{ "verbose" , no_argument, 0, 'v' },
-		{ "check" , no_argument, 0, 'c' },
+		{ "check-driver" , no_argument, 0, 'c' },
+		{ "check-exist" , no_argument, 0, 'e' },
 		{0, 0, 0, 0}
 	};
 
@@ -206,22 +258,33 @@ int __cdecl main(int argc, char** argv)
 	BOOL isElevated = IsElevated();
 
 	while (1) {
-		c = getopt_long(argc, argv, "chodv", long_options, NULL);
+		c = getopt_long(argc, argv, "cehodvl", long_options, NULL);
 		switch (c) {
 		case 'c':
-			checkDrivers();
+			// This will exit the program.
+			checkDrivers(CHECK_DRIVER);
+			break;
+		case 'e':
+			// This will exit the program.
+			checkDrivers(CHECK_EXIST);
+			break;
+		case 'l':
+			// This will exit the program.
+			opt_silent = 0;
+			opt_listall = 1;
+			continue;
 			break;
 		case 'o':
 			inf_name = OLIM_INF_NAME;
 			ext_dir = OLIM_DEFAULT_DIR;
 			dev = &olim_dev;
-			oprintf("Checking WinUSB driver for Olimex, ");
+			oprintf("Checking Olimex  : ");
 			break;
 		case 'd':
 			inf_name = ARTY_INF_NAME;
 			ext_dir = ARTY_DEFAULT_DIR;
 			dev = &arty_dev;
-			oprintf("Checking WinUSB driver for Digilent, ");
+			oprintf("Checking Digilent: ");
 			break;
 		case 'v':
 			opt_silent = 0;
@@ -259,33 +322,51 @@ int __cdecl main(int argc, char** argv)
 
 		// Try to match against a plugged device to avoid device manager prompts
 		if (wdi_create_list(&ldev, &ocl) == WDI_SUCCESS) {
+			int deviceConnected = FALSE;
+			int needsInstalling = FALSE;
 			r = WDI_SUCCESS;
-			for (; (ldev != NULL) && (r == WDI_SUCCESS); ldev = ldev->next) {
+			for (; (ldev != NULL) && (r == WDI_SUCCESS) && (deviceConnected == FALSE); ldev = ldev->next) {
+				//oprintf("Examining device: %04x:%04x:%x:%x %12s %s\n", ldev->vid, ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, ldev->desc);
 				if ((ldev->vid == dev->vid) 
 					&& (ldev->pid == dev->pid) 
 					&& (ldev->mi == dev->mi) 
 					&& (ldev->is_composite == dev->is_composite)) {
+					deviceConnected = TRUE;
 					if (ldev->driver == NULL || strcmp(ldev->driver, "WinUSB") != 0) {
+						needsInstalling = TRUE;
 						dev->hardware_id = ldev->hardware_id;
 						dev->device_id = ldev->device_id;
 						fflush(stdout);
-						if (!isElevated) {
-							printf("driver needs to be installed, but this program must be run from an elevated shell in order to install a driver, skipping\n");
-						}
-						else {
-							oprintf("installing...\n");
-							r = wdi_install_driver(dev, ext_dir, inf_name, &oid);
-							driverInstalled = TRUE;
-							if (r != WDI_SUCCESS) {
-								oprintf("%s\n", wdi_strerror(r));
-								return r;
-							}
-							oprintf("finished\n");
-						}
 					}
 					else {
-						oprintf("already installed, skipping\n");
+						oprintf("WinUSB already installed, skipping\n");
 						break;
+					}
+				}
+			}
+ 			if (!deviceConnected || needsInstalling) {
+				if (!deviceConnected) {
+					printf("not connected, please connect before installing driver.\n");
+					needsInstalling = FALSE;
+				}
+				else {
+					printf("device found, ");
+				}
+
+				if (needsInstalling) {
+					if (!isElevated) {
+						printf("but this program must be run from an elevated shell in order to install a driver, skipping\n");
+					}
+					else {
+						oprintf("installing driver...");
+						r = wdi_install_driver(dev, ext_dir, inf_name, &oid);
+						if (r != WDI_SUCCESS) {
+							oprintf("failed: %s\n", wdi_strerror(r));
+							return r;
+						}
+						else {
+							oprintf("finished\n");
+						}
 					}
 				}
 			}

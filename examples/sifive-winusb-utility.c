@@ -56,11 +56,22 @@
 #define OLIM_INSTALL_MSG "INSTALL_OLIMEX(0x1)"
 #define OLIM_EXIST_MSG   "OLIMEX_EXISTS(0x1)"
 
+#define HF2_DESC        "SiFive HiFive2 USB (Interface 0)"
+#define HF2_VID         0x0403
+#define HF2_PID         0x6011
+#define HF2_INF_NAME    "sifive_hifive2_winusb.inf"
+#define HF2_DEFAULT_DIR "sifive_hifive2_winusb_driver"
+#define HF2_INSTALL_MSG "INSTALL_HIFIVE2(0x4)"
+#define HF2_EXIST_MSG   "HIFIVE2_EXISTS(0x4)"
+
+
 static struct wdi_device_info arty_dev = { NULL, ARTY_VID, ARTY_PID, TRUE, 0, ARTY_DESC, NULL, NULL, NULL };
 static struct wdi_device_info olim_dev = { NULL, OLIM_VID, OLIM_PID, TRUE, 0, OLIM_DESC, NULL, NULL, NULL };
+static struct wdi_device_info hf2_dev = { NULL, HF2_VID, HF2_PID, TRUE, 0, HF2_DESC, NULL, NULL, NULL };
 
-#define FLAG_OLIMEX 0x1
+#define FLAG_OLIMEX   0x1
 #define FLAG_DIGILENT 0x2
+#define FLAG_HIFIVE2  0x4
 
 #define WINUSB_TAG "=> WinUSB"
 
@@ -83,10 +94,11 @@ void usage(void)
 	printf("    (without -v or -l this process is silent and the return code can be used to determine\n");
 	printf("    what actions needs to be taken)\n\n");
 	printf("  These options will install drivers (but required an elevated shell):\n");
-	printf("    -o, --olimex               install olimex winusb driver\n");
-	printf("    -d, --digelent             install digilent winusb driver\n\n");
+	printf("    -o, --olimex               install winusb driver to olimex (interface 0)\n");
+	printf("    -d, --digelent             install winusb driver to digelent (interface 0)\n");
+	printf("    -2, --hifive2              install winusb driver to hifive2 (interface 0)\n\n");
 
-	printf("\nAt least one of --olimex or --digilent is required unless using -c or -e.\n\n");
+	printf("\nAt least one of --olimex, --hifive2, or --digilent is required unless using -c or -e.\n\n");
 }
 
 int isMatch(struct wdi_device_info *ldev, struct wdi_device_info *dev) {
@@ -182,6 +194,14 @@ int checkDrivers(int checkType) {
 					return_code |= FLAG_DIGILENT;
 				}
 			}
+			else if (isMatch(ldev, &hf2_dev)) {
+				matching_device_found = TRUE;
+				print = TRUE;
+				if (isDeviceFlaggedFor(checkType, ldev)) {
+					tag = WINUSB_TAG;
+					return_code |= FLAG_HIFIVE2;
+				}
+			}
 
 			if (print) {
 				oprintf("Device: %04x:%04x:%x:%x %12s %9s %s\n", ldev->vid,
@@ -198,9 +218,12 @@ int checkDrivers(int checkType) {
 
 	char* o_leader = OLIM_EXIST_MSG;
 	char* d_leader = ARTY_EXIST_MSG;
+	char* h2_leader = HF2_EXIST_MSG;
+
 	if (CHECK_DRIVER == checkType) {
 		o_leader = OLIM_INSTALL_MSG;
 		d_leader = ARTY_INSTALL_MSG;
+		h2_leader = HF2_INSTALL_MSG;
 	}
 
 	oprintf("Return code: %d", return_code);
@@ -244,6 +267,7 @@ int __cdecl main(int argc, char** argv)
 		{ "help", no_argument, 0, 'h'},
 		{ "olimex", no_argument, 0, 'o' },
 		{ "digilent" , no_argument, 0, 'd' },
+		{ "hifive2" , no_argument, 0, '2' },
 		{ "verbose" , no_argument, 0, 'v' },
 		{ "check-driver" , no_argument, 0, 'c' },
 		{ "check-exist" , no_argument, 0, 'e' },
@@ -258,7 +282,7 @@ int __cdecl main(int argc, char** argv)
 	BOOL isElevated = IsElevated();
 
 	while (1) {
-		c = getopt_long(argc, argv, "cehodvl", long_options, NULL);
+		c = getopt_long(argc, argv, "cehodvl2", long_options, NULL);
 		switch (c) {
 		case 'c':
 			// This will exit the program.
@@ -285,6 +309,12 @@ int __cdecl main(int argc, char** argv)
 			ext_dir = ARTY_DEFAULT_DIR;
 			dev = &arty_dev;
 			oprintf("Checking Digilent: ");
+			break;
+		case '2':
+			inf_name = HF2_INF_NAME;
+			ext_dir = HF2_DEFAULT_DIR;
+			dev = &hf2_dev;
+			oprintf("Checking HiFive2: ");
 			break;
 		case 'v':
 			opt_silent = 0;

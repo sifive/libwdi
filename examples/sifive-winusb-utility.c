@@ -41,42 +41,59 @@
  * you don't want to provide parameters
  */
 #define ARTY_DESC        "SiFive Digilent USB Device (Interface 0)"
+#define ARTY_VCP_DESC    "SiFive Digilent USB Device (Interface 1) Virtual Com Port"
 #define ARTY_VID         0x0403
 #define ARTY_PID         0x6010
 #define ARTY_INF_NAME    "sifive_arty_digilent.inf"
 #define ARTY_DEFAULT_DIR "sifive_art_digilent_driver"
-#define ARTY_INSTALL_MSG "INSTALL_DIGILENT(0x2)"
-#define ARTY_EXIST_MSG   "DIGILENT_EXISTS(0x2)"
 
-#define OLIM_DESC        "SiFive Olimex OpenOCD JTAG ARM-USB-TINY-H (Interface 0)"
+#define ARTY_INSTALL_WINUSB_MSG "INSTALL_DIGILENT_IF0_WINUSB(0x2)"
+#define ARTY_INSTALL_FTDI_MSG   "INSTALL_DIGILENT_IF0_FTDI(0x8)"
+
+#define OLIM_DESC_IF0        "SiFive Olimex OpenOCD JTAG ARM-USB-TINY-H (Interface 0)"
+#define OLIM_DESC_IF1        "SiFive Olimex OpenOCD JTAG ARM-USB-TINY-H (Interface 1) (unused)"
 #define OLIM_VID         0x15ba
 #define OLIM_PID         0x002a
 #define OLIM_INF_NAME    "sifive_olimex_winusb.inf"
 #define OLIM_DEFAULT_DIR "sifive_olimex_winusb_driver"
-#define OLIM_INSTALL_MSG "INSTALL_OLIMEX(0x1)"
-#define OLIM_EXIST_MSG   "OLIMEX_EXISTS(0x1)"
+#define OLIM_INSTALL_MSG "INSTALL_OLIMEX_IF0_WINUSB(0x1)"
 
 #define HF2_DESC        "SiFive HiFive2 USB (Interface 0)"
 #define HF2_VID         0x0403
 #define HF2_PID         0x6011
 #define HF2_INF_NAME    "sifive_hifive2_winusb.inf"
 #define HF2_DEFAULT_DIR "sifive_hifive2_winusb_driver"
-#define HF2_INSTALL_MSG "INSTALL_HIFIVE2(0x4)"
-#define HF2_EXIST_MSG   "HIFIVE2_EXISTS(0x4)"
+#define HF2_INSTALL_MSG "INSTALL_HIFIVE2_WINUSB(0x4)"
 
 
-static struct wdi_device_info arty_dev = { NULL, ARTY_VID, ARTY_PID, TRUE, 0, ARTY_DESC, NULL, NULL, NULL };
-static struct wdi_device_info olim_dev = { NULL, OLIM_VID, OLIM_PID, TRUE, 0, OLIM_DESC, NULL, NULL, NULL };
+static struct wdi_device_info arty_digilent_dev = { NULL, ARTY_VID, ARTY_PID, TRUE, 0, ARTY_DESC, NULL, NULL, NULL };
+static struct wdi_device_info arty_vcp_dev = { NULL, ARTY_VID, ARTY_PID, TRUE, 1, ARTY_VCP_DESC, NULL, NULL, NULL };
+static struct wdi_device_info olim_dev_if0 = { NULL, OLIM_VID, OLIM_PID, TRUE, 0, OLIM_DESC_IF0, NULL, NULL, NULL };
+static struct wdi_device_info olim_dev_if1 = { NULL, OLIM_VID, OLIM_PID, TRUE, 1, OLIM_DESC_IF1, NULL, NULL, NULL };
 static struct wdi_device_info hf2_dev = { NULL, HF2_VID, HF2_PID, TRUE, 0, HF2_DESC, NULL, NULL, NULL };
 
-#define FLAG_OLIMEX   0x1
-#define FLAG_DIGILENT 0x2
-#define FLAG_HIFIVE2  0x4
+#define FLAG_OLIMEX_IF0_WINUSB        0x01
+#define FLAG_DIGILENT_IF0_WINUSB      0x02
+#define FLAG_HIFIVE2_WINUSB           0x04
+#define FLAG_DIGILENT_IF0_FTDIBUS     0x08
+#define FLAG_DIGILENT_IF0_NODRIVER    0x10
+#define FLAG_DIGILENT_IF1_FTDIBUS     0x20
+#define FLAG_OLIMEX_IF1_WINUSB        0x40
 
-#define WINUSB_TAG "=> WinUSB"
+#define WINUSB "WinUSB"
+#define FTDIBUS "FTDIBUS"
+
+
+#define WINUSB_TAG "=> WinUSB "
+#define FTDIBUS_TAG "=> FTDI   "
+#define FTDINUL_TAG "=> FTDI   "
+#define FTDIVCP_TAG "=> FTDIVCP"
+#define FTDINUL_TAG "=> FTDI   "
 
 #define CHECK_DRIVER 1
 #define CHECK_EXIST 2
+
+#define FORMAT "Device: %04x:%04x:%x:%x %12s %10s %s\n"
 
 static int opt_silent = 1, opt_listall = 0;
 static int checkType = CHECK_EXIST;
@@ -95,10 +112,10 @@ void usage(void)
 	printf("    what actions needs to be taken)\n\n");
 	printf("  These options will install drivers (but required an elevated shell):\n");
 	printf("    -o, --olimex               install winusb driver to olimex (interface 0)\n");
-	printf("    -d, --digelent             install winusb driver to digelent (interface 0)\n");
+	printf("    -d, --digilent             install winusb driver to digilent (interface 0)\n");
 	printf("    -2, --hifive2              install winusb driver to hifive2 (interface 0)\n\n");
 
-	printf("\nAt least one of --olimex, --hifive2, or --digilent is required unless using -c or -e.\n\n");
+	printf("\nAt least one of --olimex, --hifive2, or --digilent is required unless using -c, -e, or -q.\n\n");
 }
 
 int isMatch(struct wdi_device_info *ldev, struct wdi_device_info *dev) {
@@ -111,7 +128,7 @@ int isMatch(struct wdi_device_info *ldev, struct wdi_device_info *dev) {
 	return FALSE;
 }
 
-BOOL isDeviceFlaggedFor(int checkType, struct wdi_device_info *ldev) {
+BOOL isDeviceFlaggedFor(int checkType, struct wdi_device_info *ldev, char *driver) {
 	if (checkType == CHECK_EXIST) {
 		/*
 		  IF we got this far, then the device certainly exists
@@ -121,7 +138,12 @@ BOOL isDeviceFlaggedFor(int checkType, struct wdi_device_info *ldev) {
 	/*
 	  For the CHECK_DRIVER case we need to examine the driver details.
 	 */
-	return (ldev->driver == NULL || strcmp(ldev->driver, "WinUSB"));
+	if (driver == NULL) {
+		return (ldev->driver == NULL);
+	}
+	else {
+		return (ldev->driver == NULL || strcmp(ldev->driver, driver));
+	}
 }
 
 BOOL IsElevated() {
@@ -178,35 +200,99 @@ int checkDrivers(int checkType) {
 				print = TRUE;
 			}
 
-			if (isMatch(ldev, &olim_dev)) {
+			if (isMatch(ldev, &olim_dev_if0)) {
 				matching_device_found = TRUE;
 				print = TRUE;
-				if (isDeviceFlaggedFor(checkType, ldev)) {
-					tag = WINUSB_TAG;
-					return_code |= FLAG_OLIMEX;
+				if (isDeviceFlaggedFor(checkType, ldev, WINUSB)) {
+					tag = (checkType == CHECK_DRIVER) ? WINUSB_TAG : "";
+					return_code |= FLAG_OLIMEX_IF0_WINUSB;
+				}
+				if (print) {
+					oprintf(FORMAT, ldev->vid,
+						ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+						ldev->desc);
 				}
 			}
-			else if (isMatch(ldev, &arty_dev)) {
+			/*
+			else if (isMatch(ldev, &olim_dev_if1) && checkType==CHECK_DRIVER) {
 				matching_device_found = TRUE;
 				print = TRUE;
-				if (isDeviceFlaggedFor(checkType, ldev)) {
+				if (isDeviceFlaggedFor(checkType, ldev, NULL)) {
 					tag = WINUSB_TAG;
-					return_code |= FLAG_DIGILENT;
+					return_code |= FLAG_OLIMEX_IF1_WINUSB;
+				}
+				if (print) {
+					oprintf(FORMAT, ldev->vid,
+						ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+						ldev->desc);
+				}
+			}
+			*/
+			else if (isMatch(ldev, &arty_digilent_dev)) {
+				matching_device_found = TRUE;
+				print = TRUE;
+				if (isDeviceFlaggedFor(checkType, ldev, WINUSB)) {
+					tag = (checkType == CHECK_DRIVER) ? WINUSB_TAG : "";
+					return_code |= FLAG_DIGILENT_IF0_WINUSB;
+					if (print) {
+						oprintf(FORMAT, ldev->vid,
+							ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+							ldev->desc);
+					}
+				}
+				if (isDeviceFlaggedFor(checkType, ldev, FTDIBUS) && checkType == CHECK_DRIVER) {
+					tag = FTDIBUS_TAG;
+					return_code |= FLAG_DIGILENT_IF0_FTDIBUS;
+					if (print) {
+						oprintf(FORMAT, ldev->vid,
+							ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+							ldev->desc);
+					}
+				}
+				if (isDeviceFlaggedFor(checkType, ldev, NULL) && checkType == CHECK_DRIVER) {
+					tag = FTDINUL_TAG;
+					return_code |= FLAG_DIGILENT_IF0_NODRIVER;
+					if (print) {
+						oprintf(FORMAT, ldev->vid,
+							ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+							ldev->desc);
+					}
+				}
+			}
+			else if (isMatch(ldev, &arty_vcp_dev) && checkType == CHECK_DRIVER) {
+				matching_device_found = TRUE;
+				print = TRUE;
+				if (isDeviceFlaggedFor(checkType, ldev, FTDIBUS)) {
+					tag = FTDIVCP_TAG;
+					return_code |= FLAG_DIGILENT_IF1_FTDIBUS;
+					if (print) {
+						oprintf(FORMAT, ldev->vid,
+							ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+							ldev->desc);
+					}
+				}
+				if (isDeviceFlaggedFor(checkType, ldev, NULL)) {
+					tag = FTDIVCP_TAG;
+					return_code |= FLAG_DIGILENT_IF1_FTDIBUS;
+					if (print) {
+						oprintf(FORMAT, ldev->vid,
+							ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+							ldev->desc);
+					}
 				}
 			}
 			else if (isMatch(ldev, &hf2_dev)) {
 				matching_device_found = TRUE;
 				print = TRUE;
-				if (isDeviceFlaggedFor(checkType, ldev)) {
+				if (isDeviceFlaggedFor(checkType, ldev, WINUSB)) {
 					tag = WINUSB_TAG;
-					return_code |= FLAG_HIFIVE2;
+					return_code |= FLAG_HIFIVE2_WINUSB;
+					if (print) {
+						oprintf(FORMAT, ldev->vid,
+							ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
+							ldev->desc);
+					}
 				}
-			}
-
-			if (print) {
-				oprintf("Device: %04x:%04x:%x:%x %12s %9s %s\n", ldev->vid,
-					ldev->pid, ldev->mi, ldev->is_composite, ldev->driver, tag,
-					ldev->desc);
 			}
 		}
 	}
@@ -216,14 +302,20 @@ int checkDrivers(int checkType) {
 	//	return_code = -1;
 	//}
 
-	char* o_leader = OLIM_EXIST_MSG;
-	char* d_leader = ARTY_EXIST_MSG;
-	char* h2_leader = HF2_EXIST_MSG;
+	char* o_leader = "OLIMEX_EXISTS(0x01)";
+	char* d_leader = "DIGILENT_EXISTS(0x02)";
+	char* f_leader = NULL;
+	char* n_leader = NULL;
+	char* h2_leader = "HIFIVE2_EXISTS(0x4)";
+	char* vcp_leader = NULL;
 
 	if (CHECK_DRIVER == checkType) {
 		o_leader = OLIM_INSTALL_MSG;
-		d_leader = ARTY_INSTALL_MSG;
+		d_leader = ARTY_INSTALL_WINUSB_MSG;
+		f_leader = ARTY_INSTALL_FTDI_MSG;
+		n_leader = "NO_FTDI_DRIVER(0x8)";
 		h2_leader = HF2_INSTALL_MSG;
+		vcp_leader = "INSTALL_FTDIVCP(0x20)";
 	}
 
 	oprintf("Return code: %d", return_code);
@@ -240,6 +332,18 @@ int checkDrivers(int checkType) {
 		}
 		if (return_code & 0x2) {
 			oprintf(d_leader);
+		}
+		if (return_code & FLAG_HIFIVE2_WINUSB) {
+			oprintf(h2_leader);
+		}
+		if (return_code & 0x8) {
+			oprintf(f_leader);
+		}
+		if (return_code & 0x10) {
+			oprintf(n_leader);
+		}
+		if (return_code & 0x20) {
+			oprintf(vcp_leader);
 		}
 		oprintf(")\n");
 	}
@@ -278,6 +382,7 @@ int __cdecl main(int argc, char** argv)
 	ocl.list_hubs = TRUE;
 	ocl.trim_whitespaces = TRUE;
 	opd.driver_type = WDI_WINUSB;
+	char *device = NULL;
 
 	BOOL isElevated = IsElevated();
 
@@ -301,13 +406,13 @@ int __cdecl main(int argc, char** argv)
 		case 'o':
 			inf_name = OLIM_INF_NAME;
 			ext_dir = OLIM_DEFAULT_DIR;
-			dev = &olim_dev;
+			dev = &olim_dev_if0;
 			oprintf("Checking Olimex  : ");
 			break;
 		case 'd':
 			inf_name = ARTY_INF_NAME;
 			ext_dir = ARTY_DEFAULT_DIR;
-			dev = &arty_dev;
+			dev = &arty_digilent_dev;
 			oprintf("Checking Digilent: ");
 			break;
 		case '2':

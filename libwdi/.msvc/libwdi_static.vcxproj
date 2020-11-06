@@ -202,15 +202,6 @@ embedder embedded.h</Command>
   <ItemGroup>
     <ProjectReference Include="embedder.vcxproj">
       <Project>{792d44d5-28a7-4eb3-b84b-8021fe3189f9}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="installer_x64.vcxproj">
-      <Project>{e5a56ee0-182f-470f-8cdc-8c1b7b86ee26}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="installer_x86.vcxproj">
-      <Project>{9b1c561e-f95b-4849-a7aa-a4350e227c20}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

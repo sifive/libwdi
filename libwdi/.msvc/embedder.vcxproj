@@ -103,12 +103,6 @@
     <ClInclude Include="..\embedder.h" />
     <ClInclude Include="..\embedder_files.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="detect_64build.vcxproj">
-      <Project>{5faef8f7-c809-4a68-862f-f8bc6e775b61}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
